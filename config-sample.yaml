@@ -1,0 +1,8 @@
+workspaces:
+- name: wks-analytics-europe
+  id: 876543210-465f-8383-b57d-29369e0757a2
+  key: "7r/O5cezs/I6o3T..."
+
+- name: wks-security-americas
+  id: 012345678-8383-3ca5-4b65-d12a5cda0a55
+  key: "ap1EmB92t2r316..."
