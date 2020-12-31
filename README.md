@@ -2,12 +2,16 @@
 
 ## Dependencies
 
-* [Go](https://golang.org/doc/install)
+  * [Go](https://golang.org/doc/install)
+  * [git](https://git-scm.com/downloads)
 
 Tested with these versions:
 ```bash
 $ go version
 go version go1.14.8 linux/amd64
+
+$ git --version
+git version 2.27.0
 ```
 
 ## Start the API locally
@@ -69,5 +73,11 @@ docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YA
 ```
 
 ## Or use the public docker image published
+
+https://hub.docker.com/r/alexpop/data-proxy
+
+```bash
+docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" alexpop/data-proxy:latest
+```
 
 
