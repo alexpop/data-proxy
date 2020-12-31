@@ -67,3 +67,7 @@ docker build --tag data-proxy .
 # Run the API interactively in a container and listen on localhost (127.0.0.1), TCP port 4000
 docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" data-proxy
 ```
+
+## Or use the public docker image published
+
+
