@@ -25,10 +25,16 @@ build_mac() {
   GOOS=darwin GOARCH=amd64 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME *.go
 }
 
+build_alpine() {
+  echo -e "*** Building Alpine binary in: ${green}$FILENAME${reset}"
+  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME *.go
+}
+
 errEcho
 errEcho "*** ${green}$0${reset} executed with params: ${blue}$1 $2${reset}"
 
 SUBCMD=$1
+test "$SUBCMD" = "build-alpine" && build_alpine
 test "$SUBCMD" = "build-linux" && build_linux
 test "$SUBCMD" = "build-mac" && build_mac
 exit 0

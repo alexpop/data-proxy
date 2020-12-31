@@ -30,3 +30,10 @@ curl -X GET http://127.0.0.1:4000/version
 
 curl -X POST http://127.0.0.1:4000/azure/workspace/wks-test/log/WebTest_Log -d '{ "hello": "world" }'
 ```
+
+## Build docker image
+```bash
+./make build-alpine
+docker build --tag data-proxy-image  .
+docker run -d --name=dp-container -p 127.0.0.1:4000:4000 data-proxy-image
+```

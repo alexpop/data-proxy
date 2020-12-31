@@ -86,7 +86,7 @@ func (config AzureConfig) createRun(w http.ResponseWriter, r *http.Request, para
 		err = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
 	} else {
 		// workspace not a name either, 404-ing
-		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Workspace %s not found in the proxy config.", err.Error())), http.StatusNotFound)
+		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Workspace %s not found in the proxy config.", workspace)), http.StatusNotFound)
 		return
 	}
 
