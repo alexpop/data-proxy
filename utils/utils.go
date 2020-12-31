@@ -32,9 +32,9 @@ func PrettyPrintJson(v interface{}) []byte {
 	return outBytes
 }
 
-func JsonErrorIt(s1 string, s2 string) string {
+func JsonErrorIt(msg string) string {
 	jsonErr := types.JsonResponse{
-		Error: fmt.Sprint(s1, s2),
+		Error: msg,
 	}
 	log.Printf(" < JsonErrorIt: %s\n", jsonErr.Error)
 	outBytes, err := json.MarshalIndent(jsonErr, "", "  ")
@@ -48,12 +48,12 @@ func JsonErrorIt(s1 string, s2 string) string {
 func GetFileSha256(file string) (sha256Val string, err error) {
 	openFile, err := os.Open(file)
 	if err != nil {
-		return sha256Val, fmt.Errorf("Open error: %s", err.Error())
+		return sha256Val, fmt.Errorf("open error: %s", err.Error())
 	}
 	defer openFile.Close()
 	hash := sha256.New()
 	if _, err := io.Copy(hash, openFile); err != nil {
-		return sha256Val, fmt.Errorf("Calculating sha256 error: ", err.Error())
+		return sha256Val, fmt.Errorf("calculating sha256 error: %s", err.Error())
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }

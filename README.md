@@ -26,7 +26,7 @@ go run *.go config-sample.yaml
 
 ## Call the API
 ```bash
-curl -X GET http://127.0.0.1:4000/v1/version
+curl -X GET http://127.0.0.1:4000/version
 
-curl -X POST http://127.0.0.1:4000/v1/azure/workspace/wks-test/log/WebTest_Log -d '{ "hello": "world" }'
+curl -X POST http://127.0.0.1:4000/azure/workspace/wks-test/log/WebTest_Log -d '{ "hello": "world" }'
 ```
