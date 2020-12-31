@@ -13,7 +13,7 @@ reset=`tput sgr0`
 FILENAME="dp"
 
 # -s -w reduce the size of the binary
-LDFLAGS="-X main.VERSION=$(grep -v ^\# VERSION | tail -1) -s -w"
+LDFLAGS="-X main.VERSION=$(git describe --always --long) -s -w"
 
 build_linux() {
   echo -e "*** Building Linux binary in: ${green}$FILENAME${reset}"

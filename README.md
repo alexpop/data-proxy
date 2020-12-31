@@ -60,10 +60,10 @@ To run the container, you have to build the binary and provide the yaml content 
 ./make.sh build-alpine
 
 # Build the docker file locally
-docker build --tag data-proxy-image .
+docker build --tag data-proxy .
 
 # Create a config file for the service (e.g. ~/data-proxy-config.yaml) with your azure workspaces. Use config-sample.yaml as an example
 
 # Run the API interactively in a container and listen on localhost (127.0.0.1), TCP port 4000
-docker run --name=dp-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" data-proxy-image
+docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" data-proxy
 ```
