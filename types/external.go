@@ -18,6 +18,6 @@ type JsonResponse struct {
 }
 
 type VersionJson struct {
-	Version string `json:"version"`
+	Version string `json:"binary_version"`
 	Sha256  string `json:"binary_sha256"`
 }
