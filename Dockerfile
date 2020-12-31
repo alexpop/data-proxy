@@ -1,6 +1,11 @@
 FROM alpine:latest
 
-COPY ./dp /root/
-COPY ./config.yaml /root/config.yaml
+COPY ./dp /service-bin
 
-CMD /root/dp /root/config.yaml
+CMD echo && if [ -z "$CONFIG_YAML" ]; then \
+      echo "This container requires ENV variable CONFIG_YAML to be set, aborting!"; \
+      exit 1; \
+    else \
+      echo "$CONFIG_YAML" > /config.yaml; \
+      /service-bin /config.yaml; \
+    fi

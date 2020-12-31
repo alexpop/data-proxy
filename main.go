@@ -44,14 +44,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("ERROR: Reading the config file %s returned error: %s", os.Args[1], err.Error())
 	}
-	err, config := loadYamlConfig(configBytes)
+	err, config := loadAndValidateYamlConfig(configBytes)
 	if err != nil {
 		log.Fatalf("Error loading config file %s. %s", os.Args[1], err.Error())
 	}
+	log.Printf("Successfully loaded config yaml with %d workspaces", len(config.WksIdMap))
 	serveRestEndpoints(4000, config)
 }
 
-func loadYamlConfig(configBytes []byte) (err error, config *AzureConfig) {
+func loadAndValidateYamlConfig(configBytes []byte) (err error, config *AzureConfig) {
 	configYaml := types.YamlConfig{}
 	err = yaml.Unmarshal(configBytes, &configYaml)
 	if err != nil {

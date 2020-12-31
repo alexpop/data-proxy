@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoadConfigUnmarshallError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 bad
 `))
 	assert.Nil(t, conf)
@@ -17,7 +17,7 @@ bad
 }
 
 func TestLoadConfigOneWorkspaceError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 hello: world
 `))
 	assert.Nil(t, conf)
@@ -25,7 +25,7 @@ hello: world
 }
 
 func TestLoadConfigInvalidIdError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: two
 `))
@@ -34,7 +34,7 @@ workspaces:
 }
 
 func TestLoadConfigMissingIdError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - name: one
 `))
@@ -43,7 +43,7 @@ workspaces:
 }
 
 func TestLoadConfigMissingSecretError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
 `))
@@ -52,7 +52,7 @@ workspaces:
 }
 
 func TestLoadConfigDupeIdError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -66,7 +66,7 @@ workspaces:
 }
 
 func TestLoadConfigDupeNameError(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -80,7 +80,7 @@ workspaces:
 }
 
 func TestLoadConfigSuccess(t *testing.T) {
-	err, conf := loadYamlConfig([]byte(`
+	err, conf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one

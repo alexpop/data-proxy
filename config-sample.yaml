@@ -1,8 +1,9 @@
+# This is a sample service config file that defines two workspaces to forward data to
 workspaces:
-- name: wks-analytics-europe
+- name: wks-europe
   id: 87654321-465f-8383-b57d-29369e0757a2
   secret: "7r/O5cezs/I6o3T..."
 
-- name: wks-security-americas
+- name: wks-americas
   id: 01234567-8383-3ca5-4b65-d12a5cda0a55
   secret: "ap1EmB92t2r316..."
