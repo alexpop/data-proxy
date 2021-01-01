@@ -69,13 +69,14 @@ func (config AzureConfig) createRun(w http.ResponseWriter, r *http.Request, para
 		return
 	}
 	// 01234567-3ca5-4b65-8383-c12a5cda28b3
+	statusCode := 0
 	if regexp.MustCompile("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$").MatchString(workspace) {
 		if conf, ok := config.WksIdMap[workspace]; ok {
 			// workspace has the pattern of a UUID defined in the config file
-			err = azure.PostData(workspace, logName, conf.Secret, string(bodyBytes))
+			err, statusCode = azure.PostData(workspace, logName, conf.Secret, string(bodyBytes))
 		} else if conf, ok = config.WksNameMap[workspace]; ok {
 			// workspace has the pattern of a UUID, but is actually a name, uncommon but possible
-			err = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
+			err, statusCode = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
 		} else {
 			// workspace not a name either, 404-ing
 			http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Workspace %s not found in the proxy config.", err.Error())), http.StatusNotFound)
@@ -83,15 +84,19 @@ func (config AzureConfig) createRun(w http.ResponseWriter, r *http.Request, para
 		}
 	} else if conf, ok := config.WksNameMap[workspace]; ok {
 		// workspace doesn't have the pattern of a UUID, must be a name to continue
-		err = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
+		err, statusCode = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
 	} else {
 		// workspace not a name either, 404-ing
 		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Workspace %s not found in the proxy config.", workspace)), http.StatusNotFound)
 		return
 	}
+	statusCodeString := ""
+	if statusCode > 0 {
+		statusCodeString = fmt.Sprintf("%d ", statusCode)
+	}
 
 	if err != nil {
-		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Azure API error: %s", err.Error())), http.StatusInternalServerError)
+		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Azure %sAPI error: %s", statusCodeString, err.Error())), http.StatusInternalServerError)
 		return
 	}
 }

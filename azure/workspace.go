@@ -26,7 +26,7 @@ func BuildSignature(message, secret string) (string, error) {
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil)), nil
 }
 
-func PostData(workspaceId string, logName string, secretKey string, data string) error {
+func PostData(workspaceId string, logName string, secretKey string, data string) (err error, code int) {
 	dateString := time.Now().UTC().Format(time.RFC1123)
 	dateString = strings.Replace(dateString, "UTC", "GMT", -1)
 
@@ -38,7 +38,7 @@ x-ms-date:%s
 	hashedString, err := BuildSignature(stringToHash, secretKey)
 	if err != nil {
 		log.Println(err.Error())
-		return err
+		return err, 0
 	}
 
 	signature := "SharedKey " + workspaceId + ":" + hashedString
@@ -47,28 +47,30 @@ x-ms-date:%s
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", url, bytes.NewReader([]byte(data)))
 	if err != nil {
-		return err
+		return err, 0
 	}
 
 	req.Header.Add("Log-Type", logName)
 	req.Header.Add("Authorization", signature)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("x-ms-date", dateString)
-	req.Header.Add("time-generated-field", "DateValue")
+	req.Header.Add("time-generated-field", "")
 
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err == nil {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return err, 0
 		}
 		bodyString := string(bodyBytes)
 		log.Printf(" < Response code:%d body:%s\n", resp.StatusCode, bodyString)
 		if resp.StatusCode >= 400 {
-			return errors.New(bodyString)
+			return errors.New(bodyString), resp.StatusCode
 		}
-		return nil
+		return nil, 0
 	}
-	return err
+	return err, 0
 }
