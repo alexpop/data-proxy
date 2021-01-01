@@ -1,6 +1,27 @@
 # README #
 
-## Dependencies
+## About
+
+Send data to Log Analytics with one line of code:
+```bash
+curl -X POST http://127.0.0.1:4000/azure/workspace/wks-americas/log/WebTest -d '{"hello":"2021"}'
+```
+
+## Spin the service quickly via docker
+
+ * [using the public image](https://hub.docker.com/r/alexpop/data-proxy):
+
+```bash
+docker pull alexpop/data-proxy:latest
+
+docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" alexpop/data-proxy:latest
+```
+
+^ where `~/data-proxy-config.yaml` is a local config file with the workspaces to allow the service to send data to. Use `config-sample.yaml` in this repo as an example.
+
+ * or build the service from source with the instructions below
+
+## Build Dependencies
 
   * [Go](https://golang.org/doc/install)
   * [git](https://git-scm.com/downloads)
@@ -66,18 +87,8 @@ To run the container, you have to build the binary and provide the yaml content 
 # Build the docker file locally
 docker build --tag data-proxy .
 
-# Create a config file for the service (e.g. ~/data-proxy-config.yaml) with your azure workspaces. Use config-sample.yaml as an example
+# Create a config file for the service (e.g. ~/data-proxy-config.yaml) with your azure workspaces. Use config-sample.yaml in this repo as an example.
 
 # Run the API interactively in a container and listen on localhost (127.0.0.1), TCP port 4000
 docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" data-proxy
 ```
-
-## Or use the public docker image published
-
-https://hub.docker.com/r/alexpop/data-proxy
-
-```bash
-docker run --name=data-proxy-container --rm -p 127.0.0.1:4000:4000 -e "CONFIG_YAML=$(cat ~/data-proxy-config.yaml)" alexpop/data-proxy:latest
-```
-
-
