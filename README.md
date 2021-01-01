@@ -1,8 +1,6 @@
-# README #
-
 ## About
 
-Send data to Log Analytics with one line of code:
+Send data to Azure Log Analytics with one line of code:
 ```bash
 curl -X POST http://127.0.0.1:4000/azure/workspace/wks-americas/log/WebTest -d '{"hello":"2021"}'
 ```
