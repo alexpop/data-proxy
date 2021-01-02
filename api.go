@@ -18,7 +18,7 @@ import (
 var VERSION string = "0.0.0"
 var BINARY_SHA256 = "unknown"
 
-func serveRestEndpoints(port int, config *AzureConfig) {
+func serveRestEndpoints(hostPort string, config *AzureConfig) {
 	router := httprouter.New()
 	router.GET("/version", returnVersion)
 	router.POST("/azure/workspace/:workspace/log/:log_name", config.createRun)
@@ -42,8 +42,8 @@ func serveRestEndpoints(port int, config *AzureConfig) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	log.Printf("Listening on 0.0.0.0:%d", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
+	log.Printf("Listening on %s", hostPort)
+	log.Fatal(http.ListenAndServe(hostPort, router))
 }
 
 // GET /version

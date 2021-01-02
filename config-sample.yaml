@@ -1,4 +1,8 @@
 # This is a sample service config file that defines two workspaces to forward data to
+
+listen_ip: 0.0.0.0  # defaults to 127.0.0.1 if not specified
+listen_port: 50000  # defaults to 4000 if not specified
+
 workspaces:
 - name: wks-europe
   id: 87654321-465f-8383-b57d-29369e0757a2

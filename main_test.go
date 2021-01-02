@@ -9,50 +9,51 @@ import (
 )
 
 func TestLoadConfigUnmarshallError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, yamlConf, azureConf := loadAndValidateYamlConfig([]byte(`
 bad
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, yamlConf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `bad` into types.YamlConfig")
 }
 
 func TestLoadConfigOneWorkspaceError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
 hello: world
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "must have at least one workspace, aborting")
 }
 
 func TestLoadConfigInvalidIdError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: two
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "two is not a valid workspace ID")
 }
 
 func TestLoadConfigMissingIdError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - name: one
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "missing id for workspace {Id: Name:one Secret:}")
 }
 
 func TestLoadConfigMissingSecretError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "missing secret for workspace 01234567-3ca5-4b65-8383-c12a5cda28b3")
 }
 
 func TestLoadConfigDupeIdError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -61,12 +62,12 @@ workspaces:
   name: two
   secret: sssss
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "found duplicate workspace id (01234567-3ca5-4b65-8383-c12a5cda28b3)")
 }
 
 func TestLoadConfigDupeNameError(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -75,12 +76,14 @@ workspaces:
   name: one
   secret: sssss
 `))
-	assert.Nil(t, conf)
+	assert.Nil(t, azureConf)
 	assert.EqualError(t, err, "found duplicate workspace name (one)")
 }
 
 func TestLoadConfigSuccess(t *testing.T) {
-	err, conf := loadAndValidateYamlConfig([]byte(`
+	err, yamlConf, azureConf := loadAndValidateYamlConfig([]byte(`
+listen_ip: 192.168.100.100  # defaults to 127.0.0.1 if not specified
+listen_port: 50000  # defaults to 4000 if not specified
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -90,7 +93,7 @@ workspaces:
   secret: "secret two"
 `))
 	assert.Nil(t, err)
-	assert.NotNil(t, conf)
+	assert.NotNil(t, azureConf)
 	wks1 := &types.YamlWorkspace{
 		Id:     "01234567-3ca5-4b65-8383-c12a5cda28b3",
 		Name:   "one",
@@ -109,5 +112,7 @@ workspaces:
 		WksIdMap:   expectedIdMap,
 		WksNameMap: expectedNameMap,
 	}
-	assert.Equal(t, expectedAzureConfig, conf)
+	assert.Equal(t, expectedAzureConfig, azureConf)
+	assert.Equal(t, "192.168.100.100", yamlConf.ListenIP)
+	assert.Equal(t, uint16(50000), yamlConf.ListenPort)
 }
