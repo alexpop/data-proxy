@@ -28,3 +28,19 @@ type JsonStats struct {
 	StartTime     string            `json:"start_time"`
 	ResponseCodes map[string]uint32 `json:"response_codes"`
 }
+
+type JsonRootLog struct {
+	Info     string        `json:"info,omitempty"`
+	Debug    string        `json:"debug,omitempty"`
+	Error    string        `json:"error,omitempty"`
+	ProxyLog *JsonProxyLog `json:"proxy,omitempty"`
+	Time     string        `json:"time"`
+}
+
+type JsonProxyLog struct {
+	Status uint16 `json:"status"`
+	Body   string `json:"body,omitempty"`
+	Method string `json:"method"`
+	URI    string `json:"uri"`
+	IP     string `json:"ip,omitempty"`
+}
