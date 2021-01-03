@@ -36,9 +36,10 @@ application/json
 x-ms-date:%s
 /api/logs`, len(data), dateString)
 	hashedString, err := BuildSignature(stringToHash, secretKey)
+	statusCode := http.StatusInternalServerError
 	if err != nil {
 		log.Println(err.Error())
-		return err, 0
+		return err, statusCode
 	}
 
 	signature := "SharedKey " + workspaceId + ":" + hashedString
@@ -47,7 +48,7 @@ x-ms-date:%s
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", url, bytes.NewReader([]byte(data)))
 	if err != nil {
-		return err, 0
+		return err, statusCode
 	}
 
 	req.Header.Add("Log-Type", logName)
@@ -58,19 +59,20 @@ x-ms-date:%s
 
 	resp, err := client.Do(req)
 	if resp != nil {
+		statusCode = resp.StatusCode
 		defer resp.Body.Close()
 	}
 	if err == nil {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err, 0
+			return err, statusCode
 		}
 		bodyString := string(bodyBytes)
-		log.Printf(" < Response code:%d body:%s\n", resp.StatusCode, bodyString)
-		if resp.StatusCode >= 400 {
-			return errors.New(bodyString), resp.StatusCode
+		log.Printf(" < Response code:%d body:%s\n", statusCode, bodyString)
+		if statusCode >= 400 {
+			return errors.New(bodyString), statusCode
 		}
-		return nil, 0
+		return nil, statusCode
 	}
-	return err, 0
+	return err, statusCode
 }

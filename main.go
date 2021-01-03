@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"time"
 
 	"./types"
 	"./utils"
@@ -16,11 +17,6 @@ import (
 const usage = `
   ./data-proxy config.yaml
 `
-
-type AzureConfig struct {
-	WksNameMap map[string]*types.YamlWorkspace
-	WksIdMap   map[string]*types.YamlWorkspace
-}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -43,7 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("ERROR: Reading the config file %s returned error: %s", os.Args[1], err.Error())
 	}
-	err, yamlConfig, azureConfig := loadAndValidateYamlConfig(configBytes)
+	err, yamlConfig, azureMaps := loadAndValidateYamlConfig(configBytes)
 	if err != nil {
 		log.Fatalf("Error loading config file %s. %s", os.Args[1], err.Error())
 	}
@@ -55,17 +51,23 @@ func main() {
 	if yamlConfig.ListenPort != 0 {
 		listenPort = yamlConfig.ListenPort
 	}
-	serveRestEndpoints(fmt.Sprintf("%s:%d", listenIP, listenPort), azureConfig)
+	apiData := &ApiData{
+		AzureMaps: azureMaps,
+		Stats: &types.JsonStats{
+			StartTime: time.Now().UTC().Format(time.RFC3339),
+		},
+	}
+	serveRestEndpoints(fmt.Sprintf("%s:%d", listenIP, listenPort), apiData)
 }
 
-func loadAndValidateYamlConfig(configBytes []byte) (err error, yamlConfig *types.YamlConfig, azureConfig *AzureConfig) {
+func loadAndValidateYamlConfig(configBytes []byte) (err error, yamlConfig *types.YamlConfig, azureMaps *types.AzureMaps) {
 	yamlConfig = &types.YamlConfig{}
 	err = yaml.Unmarshal(configBytes, &yamlConfig)
 	if err != nil {
 		return err, nil, nil
 	}
 
-	azureConfig = &AzureConfig{
+	azureMaps = &types.AzureMaps{
 		WksIdMap:   make(map[string]*types.YamlWorkspace, 0),
 		WksNameMap: make(map[string]*types.YamlWorkspace, 0),
 	}
@@ -80,19 +82,19 @@ func loadAndValidateYamlConfig(configBytes []byte) (err error, yamlConfig *types
 		} else if !regexp.MustCompile("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$").MatchString(workspace.Id) {
 			return fmt.Errorf("%s is not a valid workspace ID", workspace.Id), nil, nil
 		}
-		if _, ok := azureConfig.WksIdMap[workspace.Id]; ok {
+		if _, ok := azureMaps.WksIdMap[workspace.Id]; ok {
 			return fmt.Errorf("found duplicate workspace id (%s)", workspace.Id), nil, nil
 		}
 		if workspace.Secret == "" {
 			return fmt.Errorf("missing secret for workspace %s", workspace.Id), nil, nil
 		}
-		azureConfig.WksIdMap[workspace.Id] = &workspace
+		azureMaps.WksIdMap[workspace.Id] = &workspace
 		if workspace.Name != "" {
-			if _, ok := azureConfig.WksNameMap[workspace.Name]; ok {
+			if _, ok := azureMaps.WksNameMap[workspace.Name]; ok {
 				return fmt.Errorf("found duplicate workspace name (%s)", workspace.Name), nil, nil
 			}
-			azureConfig.WksNameMap[workspace.Name] = &workspace
+			azureMaps.WksNameMap[workspace.Name] = &workspace
 		}
 	}
-	return nil, yamlConfig, azureConfig
+	return nil, yamlConfig, azureMaps
 }

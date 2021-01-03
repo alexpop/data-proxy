@@ -108,7 +108,7 @@ workspaces:
 	expectedIdMap[wks2.Id] = wks2
 	expectedNameMap := make(map[string]*types.YamlWorkspace, 2)
 	expectedNameMap[wks1.Name] = wks1
-	expectedAzureConfig := &AzureConfig{
+	expectedAzureConfig := &types.AzureMaps{
 		WksIdMap:   expectedIdMap,
 		WksNameMap: expectedNameMap,
 	}

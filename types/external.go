@@ -19,7 +19,12 @@ type JsonResponse struct {
 	Data  interface{} `json:"data,omitempty"`
 }
 
-type VersionJson struct {
+type JsonVersion struct {
 	Version string `json:"binary_version"`
 	Sha256  string `json:"binary_sha256"`
+}
+
+type JsonStats struct {
+	StartTime     string            `json:"start_time"`
+	ResponseCodes map[string]uint32 `json:"response_codes"`
 }
