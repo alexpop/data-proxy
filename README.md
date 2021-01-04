@@ -49,7 +49,7 @@ go run *.go config-sample.yaml
 
 ## API endpoints in the form of HTTP `VERB: URL`
 
-1. `GET: $URI/version`
+### GET: $URI/version
 
 Shows version of the service and sha256 sum of the api binary, for example:
 ```json
@@ -61,14 +61,14 @@ Shows version of the service and sha256 sum of the api binary, for example:
 }
 ```
 
-2. `POST: $URI/azure/workspace/:workspace_id/log/:log_name`
+### POST: $URI/azure/workspace/:workspace_id/log/:log_name
 
 Forwards the payload of the request to Azure Log Analytics, where:
 
  * `:workspace_id` is the UUID of the workspace. Must match one of the workspace `id`s in the config file that the service is started with. A name, as defined in the workspace `name` can be used here as well.
  * `:log_name` is the name of the Azure Analytics log where data will end up. For a `log_name` of `ProxyTest`, your data will be visible under `ProxyTest_CL`. It can take up to five minutes for a new log to be visible in the Log Analytics dashboard.
 
-3. `GET: $URI/stats`
+### GET: $URI/stats
 
 Shows basic stats related to the response codes of the service since start time, for example:
 ```json
@@ -94,6 +94,9 @@ curl -X POST http://127.0.0.1:4000/azure/workspace/01234567-8383-3ca5-4b65-d12a5
 
 # Send json data to the 'ProxyTest_CL' log using the workspace name
 curl -X POST http://127.0.0.1:4000/azure/workspace/wks-americas/log/ProxyTest -d '{"hello":"world2"}'
+
+# Get service stats
+curl -X GET http://127.0.0.1:4000/stats
 ```
 
 ## Build docker image
