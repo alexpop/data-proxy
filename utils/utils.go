@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
+	"../jlog"
 	"../types"
 )
 
@@ -25,22 +25,24 @@ func RightSplit(stringToSplit string, delimiter string) (string, string) {
 func PrettyPrintJson(v interface{}) []byte {
 	outBytes, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		// Should not be common, ok to eat it and keep the code clean in the api
-		log.Printf("ERROR: PrettyPrintJson error '%s' for v='%+v'", err.Error(), v)
+		// Should not be a common error, ok to eat it and keep the code clean outside
+		jlog.Error(fmt.Sprintf("ERROR: PrettyPrintJson error '%s' for v='%+v'", err.Error(), v))
 	}
 	outBytes = append(outBytes, "\n"...)
 	return outBytes
 }
 
-func JsonErrorIt(msg string) string {
+func JsonErrorIt(logData *types.JsonProxyLog, msg string, responseCode int) string {
 	jsonErr := types.JsonResponse{
 		Error: msg,
 	}
-	log.Printf(" < JsonErrorIt: %s\n", jsonErr.Error)
+	logData.Body = msg
+	logData.Status = uint16(responseCode)
+	jlog.Proxy(logData)
 	outBytes, err := json.MarshalIndent(jsonErr, "", "  ")
 	if err != nil {
-		// Should not be common, ok to eat it and keep the code clean in the api
-		log.Printf("ERROR: JsonErrorIt error '%s' for jsonErr='%+v'", err.Error(), jsonErr)
+		// Should not be a common error, ok to eat it and keep the code clean outside
+		jlog.Error(fmt.Sprintf("ERROR: JsonErrorIt marshal error '%s'", err.Error()))
 	}
 	return string(outBytes)
 }

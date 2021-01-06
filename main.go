@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"time"
 
+	"./jlog"
 	"./types"
 	"./utils"
 	"gopkg.in/yaml.v2"
@@ -20,7 +20,7 @@ const usage = `
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatalf("ERROR: Missing required argument to the yaml config file: %s", usage)
+		jlog.Fatal(fmt.Sprintf("ERROR: Missing required argument to the yaml config file: %s", usage))
 	}
 
 	// TODO: Add options for:
@@ -29,19 +29,19 @@ func main() {
 
 	ex, err := os.Executable()
 	if err != nil {
-		log.Fatal(err)
+		jlog.Fatal(err.Error())
 	}
 	BINARY_SHA256, err = utils.GetFileSha256(ex)
 	if err != nil {
-		log.Fatal(err)
+		jlog.Fatal(err.Error())
 	}
 	configBytes, err := ioutil.ReadFile(os.Args[1])
 	if err != nil {
-		log.Fatalf("ERROR: Reading the config file %s returned error: %s", os.Args[1], err.Error())
+		jlog.Fatal(fmt.Sprintf("ERROR: Reading the config file %s returned error: %s", os.Args[1], err.Error()))
 	}
 	err, yamlConfig, azureMaps := loadAndValidateYamlConfig(configBytes)
 	if err != nil {
-		log.Fatalf("Error loading config file %s. %s", os.Args[1], err.Error())
+		jlog.Fatal(fmt.Sprintf("Error loading config file %s. %s", os.Args[1], err.Error()))
 	}
 	listenIP := "0.0.0.0"
 	if yamlConfig.ListenIP != "" {

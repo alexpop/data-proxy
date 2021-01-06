@@ -2,6 +2,8 @@ package jlog
 
 import (
 	"encoding/json"
+	"net/http"
+	"os"
 	"time"
 
 	"../types"
@@ -34,9 +36,17 @@ func Error(message string) {
 	}
 }
 
-func Proxy(message string) {
+func Fatal(message string) {
+	Error(message)
+	os.Exit(1)
+}
+
+func Proxy(logData *types.JsonProxyLog) {
 	if Level >= LevelInfo {
-		jsonPrint(types.JsonRootLog{Debug: message})
+		if logData.Status == 0 {
+			logData.Status = http.StatusOK
+		}
+		jsonPrint(types.JsonRootLog{ProxyLog: logData})
 	}
 }
 
