@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"regexp"
 	"runtime/debug"
 
 	"./azure"
-
+	"./jlog"
 	"./types"
 	"./utils"
 	"github.com/julienschmidt/httprouter"
@@ -25,14 +24,14 @@ type ApiData struct {
 
 func serveRestEndpoints(hostPort string, apiData *ApiData) {
 	router := httprouter.New()
-	router.GET("/version", returnVersion)
+	router.GET("/version", apiData.returnVersion)
 	router.GET("/stats", apiData.returnStats)
 	router.POST("/azure/workspace/:workspace/log/:log_name", apiData.postWorkspaceLog)
 
-	router.PanicHandler = dieHard
+	router.PanicHandler = apiData.dieHard
 	// router.NotFound = ... later if we want to return a different message for not found
 	// router.MethodNotAllowed = ... later if we want to return a different message for method
-	router.NotFound = http.HandlerFunc(dieNotFound)
+	router.NotFound = http.HandlerFunc(apiData.dieNotFound)
 
 	// Reply to browser OPTIONS calls (e.g. CORS)
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,39 +48,45 @@ func serveRestEndpoints(hostPort string, apiData *ApiData) {
 	})
 
 	apiData.Stats.ResponseCodes = make(map[string]uint32, 0)
-
-	log.Printf("Listening on %s", hostPort)
-	log.Fatal(http.ListenAndServe(hostPort, router))
+	jlog.Info(fmt.Sprintf("Listening on %s", hostPort))
+	err := http.ListenAndServe(hostPort, router)
+	if err != nil {
+		jlog.Fatal(err.Error())
+	}
 }
 
 // GET /version
-func returnVersion(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	commonHTTP(w, r)
+func (apiData *ApiData) returnVersion(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	logData := commonHTTP(w, r)
 	ver := types.JsonVersion{
 		Version: VERSION,
 		Sha256:  BINARY_SHA256,
 	}
+	jlog.Proxy(logData)
 	jsonOutPoint := utils.PrettyPrintJson(types.JsonResponse{Data: ver})
+	apiData.updateStats(http.StatusOK)
 	w.Write(jsonOutPoint)
 }
 
 // GET /stats
 func (apiData *ApiData) returnStats(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	commonHTTP(w, r)
+	logData := commonHTTP(w, r)
+	jlog.Proxy(logData)
 	jsonOutPoint := utils.PrettyPrintJson(types.JsonResponse{Data: apiData.Stats})
+	apiData.updateStats(http.StatusOK)
 	w.Write(jsonOutPoint)
 }
 
 // POST /azure/workspace/:id/log/:name
 func (apiData *ApiData) postWorkspaceLog(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	commonHTTP(w, r)
+	logData := commonHTTP(w, r)
 	logName := param.ByName("log_name")
 	workspace := param.ByName("workspace")
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Body read error: %s", err.Error())), http.StatusBadRequest)
 		apiData.updateStats(http.StatusBadRequest)
+		http.Error(w, utils.JsonErrorIt(logData, fmt.Sprintf("Body read error: %s", err.Error()), http.StatusNotFound), http.StatusBadRequest)
 		return
 	}
 	statusCode := 0
@@ -93,18 +98,18 @@ func (apiData *ApiData) postWorkspaceLog(w http.ResponseWriter, r *http.Request,
 			// workspace has the pattern of a UUID, but is actually a name, uncommon but possible
 			err, statusCode = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
 		} else {
-			// workspace not a name either, 404-ing
-			http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Workspace %s not found in the proxy config", err.Error())), http.StatusNotFound)
 			apiData.updateStats(http.StatusNotFound)
+			// workspace not a name either, 404-ing
+			http.Error(w, utils.JsonErrorIt(logData, fmt.Sprintf("Workspace %s not found in the proxy config", err.Error()), http.StatusNotFound), http.StatusNotFound)
 			return
 		}
 	} else if conf, ok := apiData.AzureMaps.WksNameMap[workspace]; ok {
 		// workspace doesn't have the pattern of a UUID, must be a name to continue
 		err, statusCode = azure.PostData(conf.Id, logName, conf.Secret, string(bodyBytes))
 	} else {
-		// workspace not a name either, 404-ing
-		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Workspace %s not found in the proxy config", workspace)), http.StatusNotFound)
 		apiData.updateStats(http.StatusNotFound)
+		// workspace not a name either, 404-ing
+		http.Error(w, utils.JsonErrorIt(logData, fmt.Sprintf("Workspace %s not found in the proxy config", workspace), http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 	statusCodeString := ""
@@ -113,10 +118,12 @@ func (apiData *ApiData) postWorkspaceLog(w http.ResponseWriter, r *http.Request,
 	}
 
 	if err != nil {
-		http.Error(w, utils.JsonErrorIt(fmt.Sprintf("Azure %sAPI error: %s", statusCodeString, err.Error())), statusCode)
-		apiData.updateStats(http.StatusInternalServerError)
+		apiData.updateStats(statusCode)
+		http.Error(w, utils.JsonErrorIt(logData, fmt.Sprintf("Azure %sAPI error: %s", statusCodeString, err.Error()), statusCode), statusCode)
 		return
 	}
+	logData.Status = uint16(statusCode)
+	jlog.Proxy(logData)
 	apiData.updateStats(statusCode)
 }
 
@@ -129,20 +136,29 @@ func (apiData *ApiData) updateStats(code int) {
 	}
 }
 
-func commonHTTP(w http.ResponseWriter, r *http.Request) {
+func getJsonProxyLog(r *http.Request) *types.JsonProxyLog {
+	ip, _ := utils.RightSplit(r.RemoteAddr, ":")
+	return &types.JsonProxyLog{
+		Method: r.Method,
+		URI:    r.URL.String(),
+		IP:     ip,
+	}
+}
+
+func commonHTTP(w http.ResponseWriter, r *http.Request) *types.JsonProxyLog {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	ip, _ := utils.RightSplit(r.RemoteAddr, ":")
-	log.Printf(" > %s %s from %s", r.Method, r.URL, ip)
+	return getJsonProxyLog(r)
 }
 
-func dieHard(w http.ResponseWriter, r *http.Request, err interface{}) {
-	log.Println(r.URL.Path, string(debug.Stack())) // Collecting panic trace
-	//debug.PrintStack()                             // or we can use PrintStack
-	http.Error(w, utils.JsonErrorIt("Internal server error"), http.StatusNotFound)
+func (apiData *ApiData) dieHard(w http.ResponseWriter, r *http.Request, err interface{}) {
+	jlog.Error(r.URL.Path + " " + string(debug.Stack()))
+	apiData.updateStats(http.StatusInternalServerError)
+	http.Error(w, utils.JsonErrorIt(getJsonProxyLog(r), "Internal server error", http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func dieNotFound(w http.ResponseWriter, r *http.Request) {
+func (apiData *ApiData) dieNotFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	http.Error(w, utils.JsonErrorIt("URI path not defined"), http.StatusNotFound)
+	apiData.updateStats(http.StatusNotFound)
+	http.Error(w, utils.JsonErrorIt(getJsonProxyLog(r), "URI path not defined", http.StatusNotFound), http.StatusNotFound)
 }

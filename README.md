@@ -1,9 +1,12 @@
 ## About
 
 Send data to Azure Log Analytics with one line of code:
+
 ```bash
 curl -X POST http://127.0.0.1:4000/azure/workspace/wks-americas/log/WebTest -d '{"hello":"2021"}'
 ```
+
+^ this assumes the data-proxy service is listening for requests on TCP port 4000. See more details below.
 
 ## Spin the service quickly via docker
 

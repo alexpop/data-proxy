@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -38,7 +37,6 @@ x-ms-date:%s
 	hashedString, err := BuildSignature(stringToHash, secretKey)
 	statusCode := http.StatusInternalServerError
 	if err != nil {
-		log.Println(err.Error())
 		return err, statusCode
 	}
 
@@ -68,7 +66,6 @@ x-ms-date:%s
 			return err, statusCode
 		}
 		bodyString := string(bodyBytes)
-		log.Printf(" < Response code:%d body:%s\n", statusCode, bodyString)
 		if statusCode >= 400 {
 			return errors.New(bodyString), statusCode
 		}
