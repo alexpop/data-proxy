@@ -15,12 +15,12 @@ import (
 )
 
 const usage = `
-  ./data-proxy config.yaml
+./dp config.yaml
 `
 
 func main() {
 	if len(os.Args) < 2 {
-		jlog.Fatal(fmt.Sprintf("ERROR: Missing required argument to the yaml config file: %s", usage))
+		jlog.Fatal(fmt.Sprintf("ERROR: Missing required argument to the yaml config file, example usage: %s", usage))
 	}
 
 	// TODO: Add options for:

@@ -2,8 +2,8 @@ package jlog
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"../types"
@@ -37,8 +37,7 @@ func Error(message string) {
 }
 
 func Fatal(message string) {
-	Error(message)
-	os.Exit(1)
+	log.Fatal(message)
 }
 
 func Proxy(logData *types.JsonProxyLog) {
