@@ -65,7 +65,7 @@ func (apiData *ApiData) returnVersion(w http.ResponseWriter, r *http.Request, _ 
 	jlog.Proxy(logData)
 	jsonOutPoint := utils.PrettyPrintJson(types.JsonResponse{Data: ver})
 	apiData.updateStats(http.StatusOK)
-	w.Write(jsonOutPoint)
+	fmt.Fprintf(w, jsonOutPoint)
 }
 
 // GET /stats
@@ -74,7 +74,7 @@ func (apiData *ApiData) returnStats(w http.ResponseWriter, r *http.Request, _ ht
 	jlog.Proxy(logData)
 	jsonOutPoint := utils.PrettyPrintJson(types.JsonResponse{Data: apiData.Stats})
 	apiData.updateStats(http.StatusOK)
-	w.Write(jsonOutPoint)
+	fmt.Fprintf(w, jsonOutPoint)
 }
 
 // POST /azure/workspace/:id/log/:name
