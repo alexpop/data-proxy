@@ -12,22 +12,22 @@ reset=`tput sgr0`
 
 FILENAME="dp"
 
-# -s -w reduce the size of the binary
-LDFLAGS="-X main.VERSION=$(git describe --always --long) -s -w"
+# -s -w reduce the size of the binary. Add --long to "git describe" to always get the commit sha
+LDFLAGS="-X main.VERSION=$(git describe --always) -s -w"
 
 build_linux() {
   echo -e "*** Building Linux binary in: ${green}$FILENAME${reset}"
-  GOOS=linux GOARCH=amd64 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME *.go
+  GOOS=linux GOARCH=amd64 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME cmd/*.go
 }
 
 build_mac() {
   echo -e "*** Building darwin binary in: ${green}$FILENAME${reset}"
-  GOOS=darwin GOARCH=amd64 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME *.go
+  GOOS=darwin GOARCH=amd64 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME cmd/*.go
 }
 
 build_alpine() {
   echo -e "*** Building Alpine binary in: ${green}$FILENAME${reset}"
-  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME *.go
+  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags "netgo" -ldflags "$LDFLAGS" -o $FILENAME cmd/*.go
 }
 
 errEcho

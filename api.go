@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"fmt"
@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"runtime/debug"
 
-	"./azure"
-	"./jlog"
-	"./types"
-	"./utils"
+	"github.com/alexpop/data-proxy/azure"
+	"github.com/alexpop/data-proxy/jlog"
+	"github.com/alexpop/data-proxy/types"
+	"github.com/alexpop/data-proxy/utils"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -22,7 +22,7 @@ type ApiData struct {
 	Stats     *types.JsonStats
 }
 
-func serveRestEndpoints(hostPort string, apiData *ApiData) {
+func ServeRestEndpoints(hostPort string, apiData *ApiData) {
 	router := httprouter.New()
 	router.GET("/version", apiData.returnVersion)
 	router.GET("/stats", apiData.returnStats)
@@ -47,7 +47,6 @@ func serveRestEndpoints(hostPort string, apiData *ApiData) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	apiData.Stats.ResponseCodes = make(map[string]uint32, 0)
 	jlog.Info(fmt.Sprintf("Listening on %s", hostPort))
 	err := http.ListenAndServe(hostPort, router)
 	if err != nil {

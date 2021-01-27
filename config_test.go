@@ -1,15 +1,15 @@
-package main
+package api
 
 import (
 	"testing"
 
-	"./types"
+	"github.com/alexpop/data-proxy/types"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadConfigUnmarshallError(t *testing.T) {
-	err, yamlConf, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, yamlConf, azureConf := LoadAndValidateYamlConfig([]byte(`
 bad
 `))
 	assert.Nil(t, yamlConf)
@@ -18,7 +18,7 @@ bad
 }
 
 func TestLoadConfigOneWorkspaceError(t *testing.T) {
-	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := LoadAndValidateYamlConfig([]byte(`
 hello: world
 `))
 	assert.Nil(t, azureConf)
@@ -26,7 +26,7 @@ hello: world
 }
 
 func TestLoadConfigInvalidIdError(t *testing.T) {
-	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := LoadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: two
 `))
@@ -35,7 +35,7 @@ workspaces:
 }
 
 func TestLoadConfigMissingIdError(t *testing.T) {
-	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := LoadAndValidateYamlConfig([]byte(`
 workspaces:
 - name: one
 `))
@@ -44,7 +44,7 @@ workspaces:
 }
 
 func TestLoadConfigMissingSecretError(t *testing.T) {
-	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := LoadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
 `))
@@ -53,7 +53,7 @@ workspaces:
 }
 
 func TestLoadConfigDupeIdError(t *testing.T) {
-	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := LoadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -67,7 +67,7 @@ workspaces:
 }
 
 func TestLoadConfigDupeNameError(t *testing.T) {
-	err, _, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, _, azureConf := LoadAndValidateYamlConfig([]byte(`
 workspaces:
 - id: 01234567-3ca5-4b65-8383-c12a5cda28b3
   name: one
@@ -81,7 +81,7 @@ workspaces:
 }
 
 func TestLoadConfigSuccess(t *testing.T) {
-	err, yamlConf, azureConf := loadAndValidateYamlConfig([]byte(`
+	err, yamlConf, azureConf := LoadAndValidateYamlConfig([]byte(`
 listen_ip: 192.168.100.100  # defaults to 127.0.0.1 if not specified
 listen_port: 50000  # defaults to 4000 if not specified
 workspaces:

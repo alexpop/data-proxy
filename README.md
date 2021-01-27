@@ -42,7 +42,7 @@ git version 2.27.0
 go get
 
 # Compile and run it with go:
-go run *.go config-sample.yaml
+go run cmd/*.go config-sample.yaml
 
 # or you can compile the binary and then execute it:
 ./make.sh build-linux   # tested on Ubuntu

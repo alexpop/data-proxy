@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"../types"
+	"github.com/alexpop/data-proxy/types"
 )
 
 const (

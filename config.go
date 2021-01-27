@@ -1,66 +1,15 @@
-package main
+package api
 
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"regexp"
-	"time"
 
-	"./jlog"
-	"./types"
-	"./utils"
+	"github.com/alexpop/data-proxy/types"
 	"gopkg.in/yaml.v2"
 )
 
-const usage = `
-./dp config.yaml
-`
-
-func main() {
-	if len(os.Args) < 2 {
-		jlog.Fatal(fmt.Sprintf("ERROR: Missing required argument to the yaml config file, example usage: %s", usage))
-	}
-
-	// TODO: Add options for:
-	// -v --version  CLI
-	// --no-version  API
-
-	ex, err := os.Executable()
-	if err != nil {
-		jlog.Fatal(err.Error())
-	}
-	BINARY_SHA256, err = utils.GetFileSha256(ex)
-	if err != nil {
-		jlog.Fatal(err.Error())
-	}
-	configBytes, err := ioutil.ReadFile(os.Args[1])
-	if err != nil {
-		jlog.Fatal(fmt.Sprintf("ERROR: Reading the config file %s returned error: %s", os.Args[1], err.Error()))
-	}
-	err, yamlConfig, azureMaps := loadAndValidateYamlConfig(configBytes)
-	if err != nil {
-		jlog.Fatal(fmt.Sprintf("Error loading config file %s. %s", os.Args[1], err.Error()))
-	}
-	listenIP := "0.0.0.0"
-	if yamlConfig.ListenIP != "" {
-		listenIP = yamlConfig.ListenIP
-	}
-	listenPort := uint16(4000)
-	if yamlConfig.ListenPort != 0 {
-		listenPort = yamlConfig.ListenPort
-	}
-	apiData := &ApiData{
-		AzureMaps: azureMaps,
-		Stats: &types.JsonStats{
-			StartTime: time.Now().UTC().Format(time.RFC3339),
-		},
-	}
-	serveRestEndpoints(fmt.Sprintf("%s:%d", listenIP, listenPort), apiData)
-}
-
-func loadAndValidateYamlConfig(configBytes []byte) (err error, yamlConfig *types.YamlConfig, azureMaps *types.AzureMaps) {
+func LoadAndValidateYamlConfig(configBytes []byte) (err error, yamlConfig *types.YamlConfig, azureMaps *types.AzureMaps) {
 	yamlConfig = &types.YamlConfig{}
 	err = yaml.Unmarshal(configBytes, &yamlConfig)
 	if err != nil {
