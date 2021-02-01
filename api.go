@@ -85,7 +85,7 @@ func (apiData *ApiData) postWorkspaceLog(w http.ResponseWriter, r *http.Request,
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		apiData.updateStats(http.StatusBadRequest)
-		http.Error(w, utils.JsonErrorIt(logData, fmt.Sprintf("Body read error: %s", err.Error()), http.StatusNotFound), http.StatusBadRequest)
+		http.Error(w, utils.JsonErrorIt(logData, fmt.Sprintf("Body read error: %s", err.Error()), http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 	statusCode := 0

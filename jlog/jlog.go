@@ -11,9 +11,9 @@ import (
 
 const (
 	LevelNone  = 0
-	LevelInfo  = 1
-	LevelDebug = 2
-	LevelError = 3
+	LevelError = 1
+	LevelInfo  = 2
+	LevelDebug = 3
 )
 
 var Level = LevelInfo // Default log level is Info
