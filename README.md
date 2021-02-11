@@ -50,6 +50,17 @@ go run cmd/*.go config-sample.yaml
 ./data-proxy config-sample.yaml
 ```
 
+## Deploy the service to Google Cloud
+```bash
+gcloud auth login
+gcloud config set project myproject
+gcloud functions list
+
+# new deployment or update existing one. All options here: https://cloud.google.com/sdk/gcloud/reference/functions/deploy
+gcloud functions deploy myfunction --region us-central1 --runtime go113 --memory=128MB --trigger-http --entry-point HttpHook --allow-unauthenticated --source ~/b/data-proxy --set-env-vars=CONFIG_YAML_CONTENT=`base64 -w 0 ../config-proxy.yaml`
+```
+
+
 ## API endpoints in the form of HTTP `VERB: URL`
 
 ### GET: $URI/version
